@@ -427,150 +427,11 @@ If both outputs are identical, the reproducibility check passes.
 
 The UI automatically performs the two required runs.
 
----
 
-# 15. Source A
-
-Source A contains source-specific processing such as:
-
-- Removing records with missing `PATIENT_ID`
-- Filtering service dates
-- Expanding multiple diagnosis columns
-- Removing empty diagnosis records
-- Enforcing claim/diagnosis grain
-- Mapping fields to the common target schema
-
-Final verified result:
-
-```text
-Rows: 67,531
-Distinct Claims: 25,101
-```
 
 ---
 
-# 16. Source B
-
-Source B contains source-specific processing such as:
-
-- Filtering service dates
-- Normalizing diagnosis codes
-- Validating claim/diagnosis grain
-- Mapping gender values
-- Mapping fields to the common target schema
-- Final validation
-
-Final verified result:
-
-```text
-Rows: 52,819
-Distinct Claims: 23,516
-```
-
----
-
-# 17. Source C
-
-Source C contains multiple versions of claims.
-
-The pipeline keeps the highest version for each `claim_ref` before continuing with the remaining processing.
-
-Source C processing includes:
-
-- Latest-version selection
-- Service-date filtering
-- Diagnosis expansion
-- Diagnosis normalization
-- Grain validation
-- Target-schema mapping
-
-Final verified result:
-
-```text
-Rows: 39,354
-Distinct Claims: 19,588
-```
-
----
-
-# 18. Harmonization
-
-After Source A, Source B, and Source C have been processed, they are converted to the common target schema and combined.
-
-The common schema contains:
-
-```text
-SRC
-PATIENT_ID
-BIRTH_YEAR
-GENDER
-ZIP3
-CLAIM_ID
-SERVICE_DATE
-DIAGNOSIS_CODE
-PLACE_OF_SERVICE
-RENDERING_NPI
-REFERRING_NPI
-BILLING_NPI
-PRIMARY_PLAN_ID
-BILLED_AMOUNT
-```
-
-A diagnosis dictionary is then used to add:
-
-```text
-DIAGNOSIS_DESC
-```
-
-The final dataset therefore contains:
-
-```text
-15 columns
-```
-
----
-
-# 19. Pipeline Stage Tracking
-
-The project includes a stage tracker that records what happens at each processing stage.
-
-For every stage, the system records:
-
-- Input row count
-- Output row count
-- Change in row count
-- Reason for the change
-
-This makes it possible to see how the dataset changes throughout the pipeline.
-
----
-
-# 20. Run the Python Pipeline Directly
-
-The web UI is the recommended way to run the complete project.
-
-However, if you want to run the underlying Python pipeline directly, run this command from the project root:
-
-```bash
-python -m src.pipeline
-```
-
-A successful execution should end with:
-
-```text
-Final rows: 159704
-Final columns: 15
-```
-
-The processed datasets are written to:
-
-```text
-data/processed/
-```
-
----
-
-# 21. Troubleshooting
+# 15. Troubleshooting
 
 ## Python command is not recognized
 
@@ -688,7 +549,7 @@ again.
 
 ---
 
-# 22. Quick Start
+# 16. Quick Start
 
 If Python and Git are already installed, the shortest setup is:
 
@@ -750,7 +611,7 @@ OVERALL: PASS
 
 ---
 
-# 23. Final Verified Results
+# 17. Final Verified Results
 
 The complete project has been tested end-to-end.
 
@@ -784,7 +645,7 @@ OVERALL: PASS
 
 ---
 
-# 24. Done!
+# 18. Done!
 
 If you are a new user, you only need to remember these three things:
 
