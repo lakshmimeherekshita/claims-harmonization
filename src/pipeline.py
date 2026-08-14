@@ -1,3 +1,4 @@
+import os
 from src.stage_tracker import StageTracker
 
 from src.source_a import run_source_a
@@ -7,6 +8,7 @@ from src.harmonize import run_harmonization
 
 
 def run_pipeline():
+    os.makedirs("data/processed", exist_ok=True)
     """
     Run the complete claims harmonization pipeline
     using one shared StageTracker.
