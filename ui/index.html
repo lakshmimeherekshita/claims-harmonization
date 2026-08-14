@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Claims Harmonization Pipeline</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1400px;
+            margin: 30px auto;
+        }
+
+        .header {
+            background: #ffffff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #6b7280;
+        }
+
+        .run-section {
+            background: #ffffff;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        button {
+            border: none;
+            padding: 13px 25px;
+            border-radius: 7px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+
+        .run-id {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #6b7280;
+            word-break: break-all;
+        }
+
+        .progress {
+            margin-top: 20px;
+        }
+
+        .progress-item {
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .progress-pass {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .progress-running {
+            color: #2563eb;
+            font-weight: bold;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow-x: auto;
+        }
+
+        .section h2 {
+            margin-top: 0;
+            font-size: 21px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th,
+        td {
+            padding: 11px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: bold;
+        }
+
+        .positive {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .zero {
+            color: #6b7280;
+        }
+
+        .pass {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .fail {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .overall {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .overall.pass {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .overall.fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .loading {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .check-row {
+            opacity: 0;
+            animation: showCheck 0.4s forwards;
+        }
+
+        @keyframes showCheck {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 800px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- ================================================= -->
+    <!-- HEADER -->
+    <!-- ================================================= -->
+
+    <div class="header">
+
+        <h1>Claims Harmonization Pipeline</h1>
+
+        <p>
+            Multi-source claims processing, harmonization,
+            validation and reproducibility monitoring
+        </p>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- PIPELINE CONTROL -->
+    <!-- ================================================= -->
+
+    <div class="run-section">
+
+        <button
+            id="runButton"
+            onclick="runCompletePipeline()"
+        >
+            ▶ Run Pipeline
+        </button>
+
+        <div id="status">
+            Ready to run.
+        </div>
+
+        <div id="runId" class="run-id"></div>
+
+        <div id="progress" class="progress"></div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- SUMMARY CARDS -->
+    <!-- ================================================= -->
+
+    <div class="cards">
+
+        <div class="card">
+
+            <div class="card-title">
+                Final Rows
+            </div>
+
+            <div
+                id="finalRows"
+                class="card-value"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Distinct Claims
+            </div>
+
+            <div
+                id="distinctClaims"
+                class="card-value"
+            >
+                -
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Distinct Patients
+            </div>
+
+            <div
+                id="distinctPatients"
+                class="card-value"
+            >
+                -
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- SOURCE SUMMARY -->
+    <!-- ================================================= -->
+
+    <div class="section">
+
+        <h2>Source Summary</h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Source</th>
+                    <th>Rows</th>
+                    <th>Distinct Claims</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="sourceSummary">
+
+                <tr>
+                    <td colspan="3">
+                        Run the pipeline to load summary.
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- PIPELINE STAGES -->
+    <!-- ================================================= -->
+
+    <div class="section">
+
+        <h2>Pipeline Stages</h2>
+
+        <div id="stagesContainer">
+
+            <p class="loading">
+                Run the pipeline to view stages.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- VALIDATION -->
+    <!-- ================================================= -->
+
+    <div class="section">
+
+        <h2>Acceptance Checks</h2>
+
+        <div id="validationContainer">
+
+            <p class="loading">
+                Run the pipeline to perform validation.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    // =====================================================
+    // API BASE URL
+    // =====================================================
+
+    const API_BASE = "http://127.0.0.1:8000";
+
+
+    // =====================================================
+    // COMPLETE PIPELINE
+    // =====================================================
+
+    async function runCompletePipeline() {
+
+        const button =
+            document.getElementById("runButton");
+
+        const status =
+            document.getElementById("status");
+
+        const runIdElement =
+            document.getElementById("runId");
+
+        const progress =
+            document.getElementById("progress");
+
+
+        button.disabled = true;
+
+        status.className = "";
+
+        runIdElement.innerHTML = "";
+
+        progress.innerHTML = "";
+
+
+        try {
+
+            // =================================================
+            // RUN 1
+            // =================================================
+
+            status.innerHTML =
+                "Running pipeline — Run 1 of 2...";
+
+            addProgress(
+                "Run 1 of 2",
+                "Running..."
+            );
+
+
+            const run1 =
+                await executePipeline();
+
+
+            addProgress(
+                "Run 1 of 2",
+                "Completed ✓"
+            );
+
+
+            // -------------------------------------------------
+            // Display Run 1 information
+            // -------------------------------------------------
+
+            runIdElement.innerHTML =
+                `Run 1 ID: ${run1.run_id}`;
+
+
+            document.getElementById(
+                "finalRows"
+            ).innerText =
+                formatNumber(run1.rows);
+
+
+            // -------------------------------------------------
+            // Load summary
+            // -------------------------------------------------
+
+            status.innerHTML =
+                "Loading source summary...";
+
+            await loadSummary();
+
+            addProgress(
+                "Source summary",
+                "Loaded ✓"
+            );
+
+
+            // -------------------------------------------------
+            // Load stages
+            // -------------------------------------------------
+
+            status.innerHTML =
+                "Loading pipeline stages...";
+
+            await loadStages(run1.run_id);
+
+            addProgress(
+                "Pipeline stages",
+                "Loaded ✓"
+            );
+
+
+            // =================================================
+            // RUN 2
+            // =================================================
+
+            status.innerHTML =
+                "Running pipeline — Run 2 of 2 for reproducibility...";
+
+            addProgress(
+                "Run 2 of 2",
+                "Running..."
+            );
+
+
+            const run2 =
+                await executePipeline();
+
+
+            addProgress(
+                "Run 2 of 2",
+                "Completed ✓"
+            );
+
+
+            runIdElement.innerHTML +=
+                `<br>Run 2 ID: ${run2.run_id}`;
+
+
+            // =================================================
+            // VALIDATION
+            // =================================================
+
+            status.innerHTML =
+                "Running acceptance checks...";
+
+
+            await loadValidation(
+                run2.run_id
+            );
+
+
+            status.innerHTML =
+                "Pipeline completed and validated ✓";
+
+
+            addProgress(
+                "Acceptance validation",
+                "Completed ✓"
+            );
+
+        }
+        catch (error) {
+
+            status.innerHTML =
+                `Error: ${error.message}`;
+
+            status.className = "fail";
+
+            console.error(error);
+
+        }
+        finally {
+
+            button.disabled = false;
+
+        }
+
+    }
+
+
+    // =====================================================
+    // EXECUTE ONE PIPELINE RUN
+    // =====================================================
+
+    async function executePipeline() {
+
+        const response =
+            await fetch(
+                `${API_BASE}/run`,
+                {
+                    method: "POST"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Pipeline failed: HTTP ${response.status}`
+            );
+
+        }
+
+
+        return await response.json();
+
+    }
+
+
+    // =====================================================
+    // PROGRESS MESSAGE
+    // =====================================================
+
+    function addProgress(
+        label,
+        message
+    ) {
+
+        const progress =
+            document.getElementById(
+                "progress"
+            );
+
+
+        const item =
+            document.createElement(
+                "div"
+            );
+
+
+        item.className =
+            message.includes("✓")
+                ? "progress-item progress-pass"
+                : "progress-item progress-running";
+
+
+        item.innerHTML =
+            `${label}: ${message}`;
+
+
+        progress.appendChild(item);
+
+    }
+
+
+    // =====================================================
+    // LOAD SUMMARY
+    // =====================================================
+
+    async function loadSummary() {
+
+        const response =
+            await fetch(
+                `${API_BASE}/summary`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load summary."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        document.getElementById(
+            "finalRows"
+        ).innerText =
+            formatNumber(
+                data.final_rows
+            );
+
+
+        document.getElementById(
+            "distinctClaims"
+        ).innerText =
+            formatNumber(
+                data.distinct_claims
+            );
+
+
+        document.getElementById(
+            "distinctPatients"
+        ).innerText =
+            formatNumber(
+                data.distinct_patients
+            );
+
+
+        const tbody =
+            document.getElementById(
+                "sourceSummary"
+            );
+
+
+        tbody.innerHTML = "";
+
+
+        data.sources.forEach(
+            source => {
+
+                const row =
+                    document.createElement(
+                        "tr"
+                    );
+
+
+                row.innerHTML = `
+                    <td>${source.source}</td>
+                    <td>${formatNumber(source.rows)}</td>
+                    <td>${formatNumber(source.distinct_claims)}</td>
+                `;
+
+
+                tbody.appendChild(row);
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // LOAD PIPELINE STAGES
+    // =====================================================
+
+    async function loadStages(runId) {
+
+        const container =
+            document.getElementById(
+                "stagesContainer"
+            );
+
+
+        container.innerHTML =
+            `<p class="loading">
+                Loading pipeline stages...
+             </p>`;
+
+
+        const response =
+            await fetch(
+                `${API_BASE}/run/${runId}/stages`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to load pipeline stages."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        let html = `
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Stage</th>
+                        <th>Rows In</th>
+                        <th>Rows Out</th>
+                        <th>Change</th>
+                        <th>Reason</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+        `;
+
+
+        data.stages.forEach(
+            stage => {
+
+                const change =
+                    stage.rows_change;
+
+
+                let changeClass =
+                    "zero";
+
+
+                if (change > 0) {
+                    changeClass = "positive";
+                }
+                else if (change < 0) {
+                    changeClass = "negative";
+                }
+
+
+                const sign =
+                    change > 0
+                        ? "+"
+                        : "";
+
+
+                html += `
+                    <tr>
+
+                        <td>
+                            ${stage.stage}
+                        </td>
+
+                        <td>
+                            ${formatNumber(
+                                stage.rows_in
+                            )}
+                        </td>
+
+                        <td>
+                            ${formatNumber(
+                                stage.rows_out
+                            )}
+                        </td>
+
+                        <td class="${changeClass}">
+                            ${sign}${formatNumber(
+                                change
+                            )}
+                        </td>
+
+                        <td>
+                            ${stage.reason}
+                        </td>
+
+                    </tr>
+                `;
+
+            }
+        );
+
+
+        html += `
+                </tbody>
+
+            </table>
+        `;
+
+
+        container.innerHTML =
+            html;
+
+    }
+
+
+    // =====================================================
+    // LOAD VALIDATION
+    // =====================================================
+
+    async function loadValidation(runId) {
+
+        const container =
+            document.getElementById(
+                "validationContainer"
+            );
+
+
+        container.innerHTML =
+            `<p class="loading">
+                Running acceptance checks...
+             </p>`;
+
+
+        const response =
+            await fetch(
+                `${API_BASE}/run/${runId}/validate`
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "Unable to perform validation."
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        const overallClass =
+            data.overall === "PASS"
+                ? "pass"
+                : "fail";
+
+
+        let html = `
+            <div class="overall ${overallClass}">
+
+                Overall Validation:
+                ${data.overall}
+
+            </div>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Check</th>
+                        <th>Expected</th>
+                        <th>Actual</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+        `;
+
+
+        data.checks.forEach(
+            (check, index) => {
+
+                const statusClass =
+                    check.status === "PASS"
+                        ? "pass"
+                        : "fail";
+
+
+                html += `
+                    <tr
+                        class="check-row"
+                        style="animation-delay: ${
+                            index * 0.15
+                        }s"
+                    >
+
+                        <td>
+                            ${check.check}
+                        </td>
+
+                        <td>
+                            ${formatValue(
+                                check.expected
+                            )}
+                        </td>
+
+                        <td>
+                            ${formatValue(
+                                check.actual
+                            )}
+                        </td>
+
+                        <td class="${statusClass}">
+                            ${check.status}
+                        </td>
+
+                    </tr>
+                `;
+
+            }
+        );
+
+
+        html += `
+                </tbody>
+
+            </table>
+        `;
+
+
+        container.innerHTML =
+            html;
+
+    }
+
+
+    // =====================================================
+    // FORMAT NUMBER
+    // =====================================================
+
+    function formatNumber(value) {
+
+        return Number(
+            value
+        ).toLocaleString(
+            "en-IN"
+        );
+
+    }
+
+
+    // =====================================================
+    // FORMAT VALUE
+    // =====================================================
+
+    function formatValue(value) {
+
+        if (
+            typeof value === "boolean"
+        ) {
+
+            return value
+                ? "TRUE"
+                : "FALSE";
+
+        }
+
+
+        if (
+            typeof value === "number"
+        ) {
+
+            return formatNumber(
+                value
+            );
+
+        }
+
+
+        return value;
+
+    }
+
+</script>
+
+</body>
+
+</html>
