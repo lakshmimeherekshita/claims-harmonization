@@ -50,7 +50,7 @@ git --version
 Open a terminal and run:
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone <https://github.com/lakshmimeherekshita/claims-harmonization.git>
 ```
 
 Then move into the project folder:
@@ -59,7 +59,7 @@ Then move into the project folder:
 cd claims-harmonization
 ```
 
-Replace `<YOUR_GITHUB_REPOSITORY_URL>` with the URL of this GitHub repository.
+Replace `<https://github.com/lakshmimeherekshita/claims-harmonization.git>` with the URL of this GitHub repository.
 
 ---
 
